@@ -93,7 +93,36 @@ def draw_img():
         cv2.waitKey(0)
 
 
+def seg_pth_to_my_pth():
+    # from collections import OrderedDict
+    # new_state_dict = OrderedDict()
+    # state_dict = torch.load('./drn_d_38_cityscapes.pth')
+    # for k, v in state_dict.items():
+    #     name = k.replace("base.", "layer")
+    #     name = name.replace("seg", "fc")
+    #     if 'up' in name:
+    #         print("pass a up")
+    #         continue
+    #     print(k, name)
+    #     new_state_dict[name] = v
+    # torch.save(new_state_dict, './new_drn_d_38_seg_pretrain.pth')
+    import drn, models
+    model = drn.drn_d_38()
+    model.fc = None
+    for k, v in model.state_dict().items():
+        print("org model key:", k)
+
+    model.load_state_dict(torch.load('./new_drn_d_38_seg_pretrain.pth'))
+    img = torch.randn((1, 3, 512, 512))
+    model.fc = models.conv1x1(512, 6)
+    out = model(img)
+    print(model)
+    print(out.shape)
+    # return
+
+
 if __name__ == '__main__':
     # resize_512()
-    draw_img()
+    # draw_img()
+    seg_pth_to_my_pth()
     pass

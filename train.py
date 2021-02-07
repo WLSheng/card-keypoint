@@ -23,13 +23,17 @@ import drn
 
 def train():
     transform = transforms.Compose([Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), transforms.ToTensor()])
-
     card_dataset = cardDataset(transform)
     train_dataloader = DataLoader(card_dataset, batch_size=config.batch_size, shuffle=True, num_workers=1, collate_fn=collate_fn)
     # model = models.resnet50(pretrained=True)
-    # model = drn.drn_a_50(pretrained=True)
-    model = models.resnet50(pretrained=True)
-    model.fc = models.conv1x1(512 * 4, 6)
+    model = drn.drn_d_38(pretrained=False)
+    model.fc = None
+    # model = models.resnet50(pretrained=True)
+    # model.load_state_dict(torch.load(r'./drn_d_38_cityscapes.pth'))
+    model.load_state_dict(torch.load('./new_drn_d_38_seg_pretrain.pth'))
+    # model.fc = models.conv1x1(512 * 4, 6)
+    model.fc = models.conv1x1(512, 6)
+
     model.cuda()
     model.train()
 
@@ -63,8 +67,10 @@ def train():
             out = model(img)
             # target = target.type(torch.long)
             # out = torch.sigmoid(out).type(torch.float32)
-            loss = loss_fn(out, target)
-            if i % 20 == 0:
+            # loss = loss_fn(out, target)
+            loss = (out - target).abs().sum()
+
+            if i % 30 == 0:
                 data.show_six_feature(target.cpu().numpy(), figure_num=1, title='tatget')
                 plt_save_feature_name = './save_feature/epoch_{}_iter_{}_target.jpg'.format(e, i)
                 plt.savefig(plt_save_feature_name)
@@ -75,7 +81,6 @@ def train():
                 plt.close()
 
             # loss = (out - target).abs().sum()
-            # loss = loss.sum()
             loss.backward()
             optimizer.step()
             print("======> epoch:{}, iter:{}/{}, loss:{}, lr:{}".format(e, i, card_dataset.__len__()//config.batch_size,
@@ -95,4 +100,10 @@ def train():
 
 
 if __name__ == '__main__':
+    save_feat_path = r'F:\1_sheng\card_keypoint\save_feature'
+    if os.path.exists(save_feat_path):
+        img_list = os.listdir(save_feat_path)
+        for l in img_list:
+            os.remove(os.path.join(save_feat_path, l))
+        # os.makedirs(save_feat_path)
     train()

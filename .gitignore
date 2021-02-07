@@ -3,3 +3,5 @@ __pycache__
 save_model
 *.txt
 save_feature
+*.pth
+*.html

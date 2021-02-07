@@ -19,6 +19,7 @@ def cv_imread(file_path):
 
 def show_six_feature(feature, figure_num=2, title='target'):      # feature.shape = (1, 6, 64, 64), numpy
     plt.figure(figure_num)
+    plt.axis('off')
     for i in range(6):
         plt.subplot(2, 4, i+1)
         plt.title("{}_{}".format(title, str(i)))
