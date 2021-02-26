@@ -5,3 +5,4 @@ save_model
 save_feature
 *.pth
 *.html
+save_feature_test

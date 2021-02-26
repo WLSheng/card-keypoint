@@ -17,15 +17,23 @@ def cv_imread(file_path):
     return cv_img
 
 
-def show_six_feature(feature, figure_num=2, title='target'):      # feature.shape = (1, 6, 64, 64), numpy
+def show_six_feature(feature, figure_num=2, title='target', img=None):      # feature.shape = (1, 6, 64, 64), numpy
     plt.figure(figure_num)
-    plt.axis('off')
     for i in range(6):
         plt.subplot(2, 4, i+1)
+        plt.axis('off')
         plt.title("{}_{}".format(title, str(i)))
+        # plt.imshow(feature[0][i])
         plt.imshow(feature[0][i])
 
+    if img is not None:
+        plt.subplot(2, 4, 7)
+        plt.axis('off')
+        plt.title("img")
+        plt.imshow(img[0][0].cpu().numpy())
+
     plt.subplot(2, 4, 8)
+    plt.axis('off')
     plt.title("all")
     plt.imshow(np.max(feature[0], axis=0))
 
@@ -39,7 +47,7 @@ def make_target(content_list):    # 第0个是图片路径，后面才是坐标�
         label = int(label_list[0])
         x = int(int(label_list[1]))   # 因为resnet原本的步幅是32，512进来16出，被我调成步幅为8，512进来64出
         y = int(int(label_list[2]))
-        one_gaussian_heatmap = CenterLabelHeatMap(config.feature_size, config.feature_size, x, y, 7, stride=8)
+        one_gaussian_heatmap = CenterLabelHeatMap(config.feature_size, config.feature_size, x, y, 7, stride=8)  # 13
         gaussian_heatmap[label] = one_gaussian_heatmap
 
         # gt_mask[label][y][x] = 1.0
@@ -50,7 +58,13 @@ def make_target(content_list):    # 第0个是图片路径，后面才是坐标�
         # print(gt_mask[0][l][ll])
         # print("max index", l, coor[0][0], coor[1][0])
     # exit(0)
+
+    # 不区分类，只检测关键点
+    # result_heatmap = np.zeros((1, config.feature_size, config.feature_size))
+    # for i in range(6):
+    #     result_heatmap = np.maximum(result_heatmap, gaussian_heatmap[i])
     return torch.from_numpy(np.cast['float32'](gaussian_heatmap))
+    # return torch.from_numpy(np.cast['float32'](result_heatmap))
 
 
 class cardDataset(Dataset):
@@ -62,13 +76,14 @@ class cardDataset(Dataset):
         one_content = self.train_content[index]
         content_list = one_content.split(" ")
         img = cv_imread(content_list[0])
+        # img = cv2.resize(img, (320, 320))
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         # plt.subplot(2, 1, 1)
         # plt.imshow(img)
         img = self.transform(img)
         target = make_target(content_list)
 
-        # debug 显示target是否正确，不能当当验证坐标点对了就结束了，每一步都要验证
+        # debug 显示target是否正确，不能单单验证坐标点对了就结束了，每一步都要验证
         # one_t = target.numpy()
         # one_t = np.max(one_t, axis=0)
         # plt.figure(1)
