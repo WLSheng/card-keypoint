@@ -121,8 +121,29 @@ def seg_pth_to_my_pth():
     # return
 
 
+def rename_all_name_accord_txt():
+    txt_list = open("./train.txt", 'r').readlines()
+    save_folder = r'F:\1_sheng\card_512_ubuntu\\'
+    new_txt = open("new_train.txt", 'w')
+    for i, one_txt in enumerate(txt_list):
+        one_txt_list = one_txt.replace("\n", "").split(" ")
+        org_img_path = one_txt_list[0]
+        # folder = os.path.split(org_img_path)
+        folder = org_img_path.split("\\")[-2]
+        new_img_path = save_folder + folder + "\\" + folder + "_{}.jpg".format(str(i).zfill(3))
+        # print(org_img_path, new_img_path)
+        shutil.copy(org_img_path, new_img_path)
+        one_txt_list[0] = new_img_path
+        write_ont_txt = " ".join(one_txt_list) + "\n"
+        print(write_ont_txt)
+        new_txt.write(write_ont_txt)
+        # exit(0)
+    new_txt.close()
+
+
 if __name__ == '__main__':
     # resize_512()
     # draw_img()
-    seg_pth_to_my_pth()
+    # seg_pth_to_my_pth()
+    rename_all_name_accord_txt()
     pass

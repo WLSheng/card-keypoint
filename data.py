@@ -105,7 +105,6 @@ def collate_fn(batch):
         imgs.append(sample[0])
         labels.append(sample[1])
 
-
     return torch.stack(imgs, 0), torch.stack(labels, 0)
 
 
